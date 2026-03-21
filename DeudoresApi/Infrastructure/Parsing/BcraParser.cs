@@ -1,5 +1,6 @@
 using DeudoresApi.Domain.Models;
 using DeudoresApi.Domain.Services;
+using Microsoft.Extensions.Logging;
 
 namespace DeudoresApi.Infrastructure.Parsing;
 
@@ -8,7 +9,7 @@ namespace DeudoresApi.Infrastructure.Parsing;
 /// Vive en Infrastructure porque conoce detalles del formato físico del archivo.
 /// Al inyectarse via IBcraParser, Application y Domain no dependen de esta clase.
 /// </summary>
-public class BcraParser : IBcraParser
+public class BcraParser(ILogger<BcraParser> logger) : IBcraParser
 {
     private const int PosCodigoEntidad = 0;
     private const int LenCodigoEntidad = 5;
@@ -31,12 +32,23 @@ public class BcraParser : IBcraParser
         using var reader = new StreamReader(fileStream);
 
         string? line;
+        var lineNumber = 0;
+
         while ((line = await reader.ReadLineAsync()) != null)
         {
-            if (line.Length < MinLineLength)
-                continue;
+            lineNumber++;
 
-            var record = TryParseLine(line);
+            if (line.Length < MinLineLength)
+            {
+                // Logueamos líneas cortas como advertencia con el número de línea.
+                // Útil para detectar archivos con formato incorrecto.
+                logger.LogWarning(
+                    "Línea {LineNumber} ignorada: longitud {Length} menor al mínimo {MinLength}",
+                    lineNumber, line.Length, MinLineLength);
+                continue;
+            }
+
+            var record = TryParseLine(line, lineNumber);
             if (record != null)
                 yield return record;
         }
@@ -80,7 +92,7 @@ public class BcraParser : IBcraParser
         return (deudores, entidades);
     }
 
-    private static BcraRecord? TryParseLine(string line)
+    private BcraRecord? TryParseLine(string line, int lineNumber)
     {
         try
         {
@@ -90,17 +102,33 @@ public class BcraParser : IBcraParser
             var prestamosRaw = line.Substring(PosPrestamos, LenPrestamos).Trim();
 
             if (string.IsNullOrEmpty(codigoEntidad) || string.IsNullOrEmpty(nroIdentificacion))
+            {
+                logger.LogWarning(
+                    "Línea {LineNumber}: campos obligatorios vacíos (entidad='{Entidad}', id='{Id}')",
+                    lineNumber, codigoEntidad, nroIdentificacion);
                 return null;
+            }
 
             if (!int.TryParse(situacionRaw, out var situacion))
+            {
+                logger.LogWarning(
+                    "Línea {LineNumber}: situación '{SituacionRaw}' no es un entero válido",
+                    lineNumber, situacionRaw);
                 return null;
+            }
 
             if (!decimal.TryParse(
                     prestamosRaw.Replace(",", "."),
                     System.Globalization.NumberStyles.Any,
                     System.Globalization.CultureInfo.InvariantCulture,
                     out var prestamos))
+            {
+                // No es fatal — asignamos 0 pero lo registramos para auditoría
+                logger.LogWarning(
+                    "Línea {LineNumber}: préstamos '{PrestamosRaw}' no pudo parsearse, se usará 0",
+                    lineNumber, prestamosRaw);
                 prestamos = 0;
+            }
 
             return new BcraRecord
             {
@@ -113,9 +141,12 @@ public class BcraParser : IBcraParser
                 Prestamos = prestamos
             };
         }
-        catch
+        catch (Exception ex)
         {
+            // Captura cualquier excepción inesperada con contexto suficiente para debuggear
+            logger.LogError(ex, "Error inesperado al parsear línea {LineNumber}", lineNumber);
             return null;
         }
     }
 }
+

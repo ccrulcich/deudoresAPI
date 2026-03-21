@@ -124,3 +124,15 @@
 /Users/valeriadiaz/Desktop/Cristian-Wayni/Challenge/deudoresAPI/DeudoresApi/bin/Debug/net10.0/tr/Microsoft.CodeAnalysis.Workspaces.MSBuild.resources.dll
 /Users/valeriadiaz/Desktop/Cristian-Wayni/Challenge/deudoresAPI/DeudoresApi/bin/Debug/net10.0/zh-Hans/Microsoft.CodeAnalysis.Workspaces.MSBuild.resources.dll
 /Users/valeriadiaz/Desktop/Cristian-Wayni/Challenge/deudoresAPI/DeudoresApi/bin/Debug/net10.0/zh-Hant/Microsoft.CodeAnalysis.Workspaces.MSBuild.resources.dll
+/Users/valeriadiaz/Desktop/Cristian-Wayni/Challenge/deudoresAPI/DeudoresApi/bin/Debug/net10.0/Serilog.dll
+/Users/valeriadiaz/Desktop/Cristian-Wayni/Challenge/deudoresAPI/DeudoresApi/bin/Debug/net10.0/Serilog.AspNetCore.dll
+/Users/valeriadiaz/Desktop/Cristian-Wayni/Challenge/deudoresAPI/DeudoresApi/bin/Debug/net10.0/Serilog.Extensions.Hosting.dll
+/Users/valeriadiaz/Desktop/Cristian-Wayni/Challenge/deudoresAPI/DeudoresApi/bin/Debug/net10.0/Serilog.Extensions.Logging.dll
+/Users/valeriadiaz/Desktop/Cristian-Wayni/Challenge/deudoresAPI/DeudoresApi/bin/Debug/net10.0/Serilog.Formatting.Compact.dll
+/Users/valeriadiaz/Desktop/Cristian-Wayni/Challenge/deudoresAPI/DeudoresApi/bin/Debug/net10.0/Serilog.Settings.Configuration.dll
+/Users/valeriadiaz/Desktop/Cristian-Wayni/Challenge/deudoresAPI/DeudoresApi/bin/Debug/net10.0/Serilog.Sinks.Console.dll
+/Users/valeriadiaz/Desktop/Cristian-Wayni/Challenge/deudoresAPI/DeudoresApi/bin/Debug/net10.0/Serilog.Sinks.Debug.dll
+/Users/valeriadiaz/Desktop/Cristian-Wayni/Challenge/deudoresAPI/DeudoresApi/bin/Debug/net10.0/Serilog.Sinks.File.dll
+/Users/valeriadiaz/Desktop/Cristian-Wayni/Challenge/deudoresAPI/DeudoresApi/bin/Debug/net10.0/BouncyCastle.Cryptography.dll
+/Users/valeriadiaz/Desktop/Cristian-Wayni/Challenge/deudoresAPI/DeudoresApi/bin/Debug/net10.0/MailKit.dll
+/Users/valeriadiaz/Desktop/Cristian-Wayni/Challenge/deudoresAPI/DeudoresApi/bin/Debug/net10.0/MimeKit.dll
