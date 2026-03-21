@@ -34,4 +34,19 @@ public class DeudorRepository(AppDbContext db) : IDeudorRepository
 
         await db.SaveChangesAsync();
     }
+
+    public async Task<Deudor?> GetByIdentificacionAsync(string nroIdentificacion)
+    {
+        // FindAsync usa el cache de EF Core antes de ir a la DB — eficiente para PKs.
+        return await db.Deudores.FindAsync(nroIdentificacion);
+    }
+
+    public async Task<IEnumerable<Deudor>> GetTopAsync(int count)
+    {
+        // Se ejecuta el ORDER BY + LIMIT directamente en PostgreSQL, no en memoria.
+        return await db.Deudores
+            .OrderByDescending(d => d.SumaTotalPrestamos)
+            .Take(count)
+            .ToListAsync();
+    }
 }

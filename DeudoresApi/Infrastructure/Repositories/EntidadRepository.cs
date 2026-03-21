@@ -33,4 +33,9 @@ public class EntidadRepository(AppDbContext db) : IEntidadRepository
 
         await db.SaveChangesAsync();
     }
+
+    public async Task<Entidad?> GetByCodigoAsync(string codigoEntidad)
+    {
+        return await db.Entidades.FindAsync(codigoEntidad);
+    }
 }
