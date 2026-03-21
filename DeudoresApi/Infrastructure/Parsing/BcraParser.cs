@@ -1,6 +1,7 @@
 using DeudoresApi.Domain.Models;
 using DeudoresApi.Domain.Services;
 using Microsoft.Extensions.Logging;
+using System.Runtime.CompilerServices;
 
 namespace DeudoresApi.Infrastructure.Parsing;
 
@@ -27,21 +28,22 @@ public class BcraParser(ILogger<BcraParser> logger) : IBcraParser
     private const int LenPrestamos = 12;
     private const int MinLineLength = PosPrestamos + LenPrestamos;
 
-    public async IAsyncEnumerable<BcraRecord> ParseAsync(Stream fileStream)
+    public async IAsyncEnumerable<BcraRecord> ParseAsync(
+        Stream fileStream,
+        [EnumeratorCancellation] CancellationToken ct = default)
     {
         using var reader = new StreamReader(fileStream);
 
         string? line;
         var lineNumber = 0;
 
-        while ((line = await reader.ReadLineAsync()) != null)
+        while ((line = await reader.ReadLineAsync(ct)) != null)
         {
+            ct.ThrowIfCancellationRequested();
             lineNumber++;
 
             if (line.Length < MinLineLength)
             {
-                // Logueamos líneas cortas como advertencia con el número de línea.
-                // Útil para detectar archivos con formato incorrecto.
                 logger.LogWarning(
                     "Línea {LineNumber} ignorada: longitud {Length} menor al mínimo {MinLength}",
                     lineNumber, line.Length, MinLineLength);
@@ -54,12 +56,14 @@ public class BcraParser(ILogger<BcraParser> logger) : IBcraParser
         }
     }
 
-    public async Task<(List<Deudor> Deudores, List<Entidad> Entidades)> ProcessAsync(Stream fileStream)
+    public async Task<(List<Deudor> Deudores, List<Entidad> Entidades)> ProcessAsync(
+        Stream fileStream,
+        CancellationToken ct = default)
     {
         var deudoresDict = new Dictionary<string, (int situacionMax, decimal sumaTotal)>();
         var entidadesDict = new Dictionary<string, decimal>();
 
-        await foreach (var record in ParseAsync(fileStream))
+        await foreach (var record in ParseAsync(fileStream, ct))
         {
             if (deudoresDict.TryGetValue(record.NroIdentificacion, out var existing))
             {
@@ -123,7 +127,6 @@ public class BcraParser(ILogger<BcraParser> logger) : IBcraParser
                     System.Globalization.CultureInfo.InvariantCulture,
                     out var prestamos))
             {
-                // No es fatal — asignamos 0 pero lo registramos para auditoría
                 logger.LogWarning(
                     "Línea {LineNumber}: préstamos '{PrestamosRaw}' no pudo parsearse, se usará 0",
                     lineNumber, prestamosRaw);
@@ -143,7 +146,6 @@ public class BcraParser(ILogger<BcraParser> logger) : IBcraParser
         }
         catch (Exception ex)
         {
-            // Captura cualquier excepción inesperada con contexto suficiente para debuggear
             logger.LogError(ex, "Error inesperado al parsear línea {LineNumber}", lineNumber);
             return null;
         }

@@ -35,6 +35,12 @@ namespace DeudoresApi.Infrastructure.Data.Migrations
 
                     b.HasKey("NroIdentificacion");
 
+                    b.HasIndex("SituacionMaxima")
+                        .HasDatabaseName("IX_Deudores_SituacionMaxima");
+
+                    b.HasIndex("SumaTotalPrestamos")
+                        .HasDatabaseName("IX_Deudores_SumaTotalPrestamos");
+
                     b.ToTable("Deudores");
                 });
 

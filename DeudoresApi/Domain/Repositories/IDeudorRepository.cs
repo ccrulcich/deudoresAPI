@@ -4,17 +4,18 @@ namespace DeudoresApi.Domain.Repositories;
 
 public interface IDeudorRepository
 {
-    Task UpsertRangeAsync(IEnumerable<Deudor> deudores);
+    Task UpsertRangeAsync(IEnumerable<Deudor> deudores, CancellationToken ct = default);
 
-    Task<Deudor?> GetByIdentificacionAsync(string nroIdentificacion);
+    Task<Deudor?> GetByIdentificacionAsync(string nroIdentificacion, CancellationToken ct = default);
 
     /// <summary>
     /// Retorna los N deudores con mayor suma total de préstamos.
     /// </summary>
-    Task<IEnumerable<Deudor>> GetTopAsync(int count);
+    Task<IEnumerable<Deudor>> GetTopAsync(int count, CancellationToken ct = default);
 
     /// <summary>
-    /// Retorna todos los deudores con una situación máxima específica.
+    /// Retorna deudores con una situación máxima específica, con paginación.
     /// </summary>
-    Task<IEnumerable<Deudor>> GetBySituacionAsync(int situacion);
+    Task<(IEnumerable<Deudor> Items, int TotalCount)> GetBySituacionAsync(
+        int situacion, int page = 1, int pageSize = 50, CancellationToken ct = default);
 }

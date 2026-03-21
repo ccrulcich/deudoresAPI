@@ -8,6 +8,8 @@
     ".NETCoreApp,Version=v10.0": {
       "DeudoresApi/1.0.0": {
         "dependencies": {
+          "AWSSDK.SQS": "4.0.2.18",
+          "AspNetCore.HealthChecks.NpgSql": "9.0.0",
           "MailKit": "4.15.1",
           "Microsoft.AspNetCore.OpenApi": "10.0.5",
           "Microsoft.EntityFrameworkCore.Design": "10.0.5",
@@ -18,6 +20,36 @@
         },
         "runtime": {
           "DeudoresApi.dll": {}
+        }
+      },
+      "AspNetCore.HealthChecks.NpgSql/9.0.0": {
+        "dependencies": {
+          "Npgsql": "10.0.2"
+        },
+        "runtime": {
+          "lib/net8.0/HealthChecks.NpgSql.dll": {
+            "assemblyVersion": "9.0.0.0",
+            "fileVersion": "9.0.0.0"
+          }
+        }
+      },
+      "AWSSDK.Core/4.0.3.19": {
+        "runtime": {
+          "lib/net8.0/AWSSDK.Core.dll": {
+            "assemblyVersion": "4.0.0.0",
+            "fileVersion": "4.0.3.19"
+          }
+        }
+      },
+      "AWSSDK.SQS/4.0.2.18": {
+        "dependencies": {
+          "AWSSDK.Core": "4.0.3.19"
+        },
+        "runtime": {
+          "lib/net8.0/AWSSDK.SQS.dll": {
+            "assemblyVersion": "4.0.0.0",
+            "fileVersion": "4.0.2.18"
+          }
         }
       },
       "BouncyCastle.Cryptography/2.6.2": {
@@ -678,6 +710,27 @@
       "type": "project",
       "serviceable": false,
       "sha512": ""
+    },
+    "AspNetCore.HealthChecks.NpgSql/9.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-npc58/AD5zuVxERdhCl2Kb7WnL37mwX42SJcXIwvmEig0/dugOLg3SIwtfvvh3TnvTwR/sk5LYNkkPaBdks61A==",
+      "path": "aspnetcore.healthchecks.npgsql/9.0.0",
+      "hashPath": "aspnetcore.healthchecks.npgsql.9.0.0.nupkg.sha512"
+    },
+    "AWSSDK.Core/4.0.3.19": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-8zIzN59+J6arYSyFuhnSxPepr8ff4p6li+MxKUUnqCgwZqQ+icEGJK/23c1USIEALqZZ5gdiITuH2sOZWQom+Q==",
+      "path": "awssdk.core/4.0.3.19",
+      "hashPath": "awssdk.core.4.0.3.19.nupkg.sha512"
+    },
+    "AWSSDK.SQS/4.0.2.18": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-B0E/fRmJtco5j3eNqlPDsssWIm3LfyX+FwgPaJ7UXzNCAGwLl9nrHGkQgaAfTFoua+9ZzbSD49hcu1QoA5zwzA==",
+      "path": "awssdk.sqs/4.0.2.18",
+      "hashPath": "awssdk.sqs.4.0.2.18.nupkg.sha512"
     },
     "BouncyCastle.Cryptography/2.6.2": {
       "type": "package",

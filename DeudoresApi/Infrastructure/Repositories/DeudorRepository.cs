@@ -2,59 +2,83 @@ using DeudoresApi.Domain.Models;
 using DeudoresApi.Domain.Repositories;
 using DeudoresApi.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace DeudoresApi.Infrastructure.Repositories;
 
-public class DeudorRepository(AppDbContext db) : IDeudorRepository
+public class DeudorRepository(AppDbContext db, ILogger<DeudorRepository> logger) : IDeudorRepository
 {
-    public async Task UpsertRangeAsync(IEnumerable<Deudor> deudores)
+    private const int BatchSize = 5000;
+
+    public async Task UpsertRangeAsync(IEnumerable<Deudor> deudores, CancellationToken ct = default)
     {
         var list = deudores.ToList();
-        var keys = list.Select(d => d.NroIdentificacion).ToHashSet();
 
-        var existingKeys = await db.Deudores
-            .Where(d => keys.Contains(d.NroIdentificacion))
-            .Select(d => d.NroIdentificacion)
-            .ToHashSetAsync();
-
-        var toInsert = list.Where(d => !existingKeys.Contains(d.NroIdentificacion)).ToList();
-        var toUpdate = list.Where(d => existingKeys.Contains(d.NroIdentificacion)).ToList();
-
-        if (toInsert.Count > 0)
-            await db.Deudores.AddRangeAsync(toInsert);
-
-        foreach (var d in toUpdate)
+        // Procesamos en batches para evitar saturar el Change Tracker de EF Core
+        // y reducir la presión de memoria con millones de registros
+        for (var offset = 0; offset < list.Count; offset += BatchSize)
         {
-            await db.Deudores
-                .Where(x => x.NroIdentificacion == d.NroIdentificacion)
-                .ExecuteUpdateAsync(s => s
-                    .SetProperty(x => x.SituacionMaxima, d.SituacionMaxima)
-                    .SetProperty(x => x.SumaTotalPrestamos, d.SumaTotalPrestamos));
+            ct.ThrowIfCancellationRequested();
+
+            var batch = list.Skip(offset).Take(BatchSize).ToList();
+            var keys = batch.Select(d => d.NroIdentificacion).ToHashSet();
+
+            var existingKeys = await db.Deudores
+                .Where(d => keys.Contains(d.NroIdentificacion))
+                .Select(d => d.NroIdentificacion)
+                .ToHashSetAsync(ct);
+
+            var toInsert = batch.Where(d => !existingKeys.Contains(d.NroIdentificacion)).ToList();
+            var toUpdate = batch.Where(d => existingKeys.Contains(d.NroIdentificacion)).ToList();
+
+            if (toInsert.Count > 0)
+                await db.Deudores.AddRangeAsync(toInsert, ct);
+
+            foreach (var d in toUpdate)
+            {
+                await db.Deudores
+                    .Where(x => x.NroIdentificacion == d.NroIdentificacion)
+                    .ExecuteUpdateAsync(s => s
+                        .SetProperty(x => x.SituacionMaxima, d.SituacionMaxima)
+                        .SetProperty(x => x.SumaTotalPrestamos, d.SumaTotalPrestamos), ct);
+            }
+
+            await db.SaveChangesAsync(ct);
+
+            // Limpiamos el Change Tracker entre batches para liberar memoria
+            db.ChangeTracker.Clear();
+
+            if (offset % (BatchSize * 10) == 0 && offset > 0)
+                logger.LogInformation("Upsert deudores progreso: {Processed}/{Total}", offset, list.Count);
         }
-
-        await db.SaveChangesAsync();
     }
 
-    public async Task<Deudor?> GetByIdentificacionAsync(string nroIdentificacion)
+    public async Task<Deudor?> GetByIdentificacionAsync(string nroIdentificacion, CancellationToken ct = default)
     {
-        // FindAsync usa el cache de EF Core antes de ir a la DB — eficiente para PKs.
-        return await db.Deudores.FindAsync(nroIdentificacion);
+        return await db.Deudores.FindAsync([nroIdentificacion], ct);
     }
 
-    public async Task<IEnumerable<Deudor>> GetTopAsync(int count)
+    public async Task<IEnumerable<Deudor>> GetTopAsync(int count, CancellationToken ct = default)
     {
-        // Se ejecuta el ORDER BY + LIMIT directamente en PostgreSQL, no en memoria.
         return await db.Deudores
             .OrderByDescending(d => d.SumaTotalPrestamos)
             .Take(count)
-            .ToListAsync();
+            .ToListAsync(ct);
     }
 
-    public async Task<IEnumerable<Deudor>> GetBySituacionAsync(int situacion)
+    public async Task<(IEnumerable<Deudor> Items, int TotalCount)> GetBySituacionAsync(
+        int situacion, int page = 1, int pageSize = 50, CancellationToken ct = default)
     {
-        return await db.Deudores
-            .Where(d => d.SituacionMaxima == situacion)
+        var query = db.Deudores.Where(d => d.SituacionMaxima == situacion);
+
+        var totalCount = await query.CountAsync(ct);
+
+        var items = await query
             .OrderByDescending(d => d.SumaTotalPrestamos)
-            .ToListAsync();
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(ct);
+
+        return (items, totalCount);
     }
 }
