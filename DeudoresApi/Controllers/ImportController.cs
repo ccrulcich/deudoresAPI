@@ -1,11 +1,12 @@
-using DeudoresApi.Services;
+using DeudoresApi.Application.DTOs;
+using DeudoresApi.Application.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DeudoresApi.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class ImportController : ControllerBase
+public class ImportController(IImportService importService) : ControllerBase
 {
     [HttpPost("upload")]
     [RequestSizeLimit(long.MaxValue)]
@@ -15,15 +16,9 @@ public class ImportController : ControllerBase
             return BadRequest("Archivo inválido");
 
         using var stream = file.OpenReadStream();
+        var result = await importService.ProcessAsync(stream);
 
-        var (deudores, entidades) = await BcraParser.ProcessAsync(stream);
-
-        return Ok(new
-        {
-            message = "Archivo procesado",
-            deudores = deudores.Count,
-            entidades = entidades.Count
-        });
+        return Ok(ToResponse(result));
     }
 
     /// <summary>
@@ -39,16 +34,17 @@ public class ImportController : ControllerBase
             return NotFound($"Archivo no encontrado: {request.FilePath}");
 
         using var stream = System.IO.File.OpenRead(request.FilePath);
+        var result = await importService.ProcessAsync(stream);
 
-        var (deudores, entidades) = await BcraParser.ProcessAsync(stream);
-
-        return Ok(new
-        {
-            message = "Archivo procesado",
-            deudores = deudores.Count,
-            entidades = entidades.Count
-        });
+        return Ok(ToResponse(result));
     }
+
+    private static object ToResponse(ImportResultDto result) => new
+    {
+        message = "Archivo procesado y persistido",
+        deudores = result.DeudoresCount,
+        entidades = result.EntidadesCount
+    };
 }
 
 public record ProcessLocalRequest(string FilePath);
