@@ -19,6 +19,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             entity.HasKey(d => d.NroIdentificacion);
             entity.Property(d => d.NroIdentificacion).HasMaxLength(11);
             entity.Property(d => d.SumaTotalPrestamos).HasColumnType("numeric(18,2)");
+
+            entity.HasIndex(d => d.SituacionMaxima).HasDatabaseName("IX_Deudores_SituacionMaxima");
+            entity.HasIndex(d => d.SumaTotalPrestamos).HasDatabaseName("IX_Deudores_SumaTotalPrestamos");
         });
 
         modelBuilder.Entity<Entidad>(entity =>

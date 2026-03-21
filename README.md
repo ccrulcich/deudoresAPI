@@ -93,8 +93,9 @@ curl -X POST http://localhost:8080/Import/upload \
 |--------|------|-------------|
 | `GET` | `/Deudores/{cuit}` | Retorna situación máxima y suma total de préstamos de un deudor |
 | `GET` | `/Deudores/top/{n}` | Top N deudores por mayor suma total de préstamos |
-| `GET` | `/Deudores?situacion={1-6}` | Filtra deudores por situación máxima |
+| `GET` | `/Deudores?situacion={1-6}&page=1&pageSize=50` | Filtra deudores por situación máxima (paginado) |
 | `GET` | `/Entidades/{codigo}` | Retorna suma total de préstamos de una entidad |
+| `GET` | `/health` | Health check (API + PostgreSQL) |
 
 **Ejemplo:**
 ```bash
@@ -105,6 +106,22 @@ curl http://localhost:8080/Deudores/20123456781
   "nroIdentificacion": "20123456781",
   "situacionMaxima": 3,
   "sumaTotalPrestamos": 150000.00
+}
+```
+
+**Ejemplo paginado:**
+```bash
+curl "http://localhost:8080/Deudores?situacion=1&page=2&pageSize=20"
+```
+```json
+{
+  "items": [...],
+  "totalCount": 5000,
+  "page": 2,
+  "pageSize": 20,
+  "totalPages": 250,
+  "hasNextPage": true,
+  "hasPreviousPage": true
 }
 ```
 
@@ -124,7 +141,7 @@ Todas las variables de entorno siguen la convención de ASP.NET Core (`__` como 
 | `Notifications__Email__Password` | Contraseña SMTP | vacío |
 | `Notifications__Email__From` | Dirección remitente | vacío |
 | `Notifications__Email__To` | Dirección destinatario | vacío |
-| `FileUpload__MaxFileSizeMb` | Tamaño máximo del archivo en MB | `100` |
+| `FileUpload__MaxFileSizeMb` | Tamaño máximo del archivo en MB (upload) | `6000` |
 | `FileUpload__AllowedExtensions` | Extensiones permitidas | `.txt` |
 
 Copiá `.env.example` a `.env` y completá los valores que necesitás.

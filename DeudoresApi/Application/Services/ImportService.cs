@@ -18,28 +18,25 @@ public class ImportService(
     IEventPublisher eventPublisher,
     ILogger<ImportService> logger) : IImportService
 {
-    public async Task<ImportResultDto> ProcessAsync(Stream fileStream)
+    public async Task<ImportResultDto> ProcessAsync(Stream fileStream, CancellationToken ct = default)
     {
         logger.LogInformation("Iniciando procesamiento de archivo BCRA...");
         var stopwatch = System.Diagnostics.Stopwatch.StartNew();
 
-        var (deudores, entidades) = await parser.ProcessAsync(fileStream);
+        var (deudores, entidades) = await parser.ProcessAsync(fileStream, ct);
 
         logger.LogInformation(
             "Parsing completado: {DeudoresCount} deudores únicos, {EntidadesCount} entidades únicas",
             deudores.Count, entidades.Count);
 
-        await deudorRepo.UpsertRangeAsync(deudores);
-        await entidadRepo.UpsertRangeAsync(entidades);
+        await deudorRepo.UpsertRangeAsync(deudores, ct);
+        await entidadRepo.UpsertRangeAsync(entidades, ct);
 
         stopwatch.Stop();
         logger.LogInformation(
             "Persistencia completada en {ElapsedMs}ms",
             stopwatch.ElapsedMilliseconds);
 
-        // Publica el evento de dominio al finalizar.
-        // Hoy escribe en el log; mañana puede enrutar a SQS/RabbitMQ/webhook
-        // sin tocar este código — solo se swapea IEventPublisher en Program.cs.
         await eventPublisher.PublishAsync(new ImportCompletedEvent(
             deudores.Count,
             entidades.Count,

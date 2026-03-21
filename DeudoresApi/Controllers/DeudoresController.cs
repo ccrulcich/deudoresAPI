@@ -11,11 +11,10 @@ public class DeudoresController(IQueryService queryService) : ControllerBase
     /// Retorna un deudor por su número de identificación (CUIT/CUIL).
     /// </summary>
     [HttpGet("{nroIdentificacion}")]
-    public async Task<IActionResult> GetByIdentificacion(string nroIdentificacion)
+    public async Task<IActionResult> GetByIdentificacion(string nroIdentificacion, CancellationToken ct)
     {
-        var deudor = await queryService.GetDeudorAsync(nroIdentificacion);
+        var deudor = await queryService.GetDeudorAsync(nroIdentificacion, ct);
 
-        // 404 explícito: es un dato esperado que puede no existir, no un error del servidor.
         if (deudor is null)
             return NotFound($"No se encontró deudor con identificación: {nroIdentificacion}");
 
@@ -26,21 +25,24 @@ public class DeudoresController(IQueryService queryService) : ControllerBase
     /// Retorna los N deudores con mayor suma total de préstamos.
     /// </summary>
     [HttpGet("top/{n:int}")]
-    public async Task<IActionResult> GetTop(int n)
+    public async Task<IActionResult> GetTop(int n, CancellationToken ct)
     {
-        // Validación de negocio: n debe ser positivo y razonable.
         if (n <= 0 || n > 1000)
             return BadRequest("El valor de N debe ser entre 1 y 1000.");
 
-        var top = await queryService.GetTopDeudoresAsync(n);
+        var top = await queryService.GetTopDeudoresAsync(n, ct);
         return Ok(top);
     }
 
     /// <summary>
-    /// Retorna todos los deudores que tengan una situación máxima específica (1–6).
+    /// Retorna deudores con una situación máxima específica (1–6), con paginación.
     /// </summary>
     [HttpGet]
-    public async Task<IActionResult> GetBySituacion([FromQuery] int? situacion)
+    public async Task<IActionResult> GetBySituacion(
+        [FromQuery] int? situacion,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 50,
+        CancellationToken ct = default)
     {
         if (situacion is null)
             return BadRequest("El parámetro 'situacion' es requerido.");
@@ -48,7 +50,11 @@ public class DeudoresController(IQueryService queryService) : ControllerBase
         if (situacion < 1 || situacion > 6)
             return BadRequest("El valor de 'situacion' debe ser entre 1 y 6.");
 
-        var deudores = await queryService.GetDeudoresBySituacionAsync(situacion.Value);
-        return Ok(deudores);
+        if (page < 1) page = 1;
+        if (pageSize < 1) pageSize = 1;
+        if (pageSize > 100) pageSize = 100;
+
+        var result = await queryService.GetDeudoresBySituacionAsync(situacion.Value, page, pageSize, ct);
+        return Ok(result);
     }
 }

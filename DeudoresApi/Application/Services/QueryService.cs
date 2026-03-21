@@ -10,35 +10,38 @@ namespace DeudoresApi.Application.Services;
 /// </summary>
 public class QueryService(IDeudorRepository deudorRepo, IEntidadRepository entidadRepo) : IQueryService
 {
-    public async Task<DeudorDto?> GetDeudorAsync(string nroIdentificacion)
+    public async Task<DeudorDto?> GetDeudorAsync(string nroIdentificacion, CancellationToken ct = default)
     {
-        var deudor = await deudorRepo.GetByIdentificacionAsync(nroIdentificacion);
+        var deudor = await deudorRepo.GetByIdentificacionAsync(nroIdentificacion, ct);
         if (deudor is null) return null;
 
         return new DeudorDto(deudor.NroIdentificacion, deudor.SituacionMaxima, deudor.SumaTotalPrestamos);
     }
 
-    public async Task<EntidadDto?> GetEntidadAsync(string codigoEntidad)
+    public async Task<EntidadDto?> GetEntidadAsync(string codigoEntidad, CancellationToken ct = default)
     {
-        var entidad = await entidadRepo.GetByCodigoAsync(codigoEntidad);
+        var entidad = await entidadRepo.GetByCodigoAsync(codigoEntidad, ct);
         if (entidad is null) return null;
 
         return new EntidadDto(entidad.CodigoEntidad, entidad.SumaTotalPrestamos);
     }
 
-    public async Task<IEnumerable<DeudorDto>> GetTopDeudoresAsync(int count)
+    public async Task<IEnumerable<DeudorDto>> GetTopDeudoresAsync(int count, CancellationToken ct = default)
     {
-        var deudores = await deudorRepo.GetTopAsync(count);
+        var deudores = await deudorRepo.GetTopAsync(count, ct);
 
         return deudores.Select(d =>
             new DeudorDto(d.NroIdentificacion, d.SituacionMaxima, d.SumaTotalPrestamos));
     }
 
-    public async Task<IEnumerable<DeudorDto>> GetDeudoresBySituacionAsync(int situacion)
+    public async Task<PagedResultDto<DeudorDto>> GetDeudoresBySituacionAsync(
+        int situacion, int page = 1, int pageSize = 50, CancellationToken ct = default)
     {
-        var deudores = await deudorRepo.GetBySituacionAsync(situacion);
+        var (items, totalCount) = await deudorRepo.GetBySituacionAsync(situacion, page, pageSize, ct);
 
-        return deudores.Select(d =>
+        var dtos = items.Select(d =>
             new DeudorDto(d.NroIdentificacion, d.SituacionMaxima, d.SumaTotalPrestamos));
+
+        return new PagedResultDto<DeudorDto>(dtos, totalCount, page, pageSize);
     }
 }

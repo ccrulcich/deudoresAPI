@@ -127,3 +127,6 @@
 /Users/valeriadiaz/Desktop/Cristian-Wayni/Challenge/deudoresAPI/DeudoresApi.Tests/obj/Debug/net10.0/DeudoresApi.Tests.pdb
 /Users/valeriadiaz/Desktop/Cristian-Wayni/Challenge/deudoresAPI/DeudoresApi.Tests/obj/Debug/net10.0/DeudoresApi.Tests.genruntimeconfig.cache
 /Users/valeriadiaz/Desktop/Cristian-Wayni/Challenge/deudoresAPI/DeudoresApi.Tests/obj/Debug/net10.0/ref/DeudoresApi.Tests.dll
+/Users/valeriadiaz/Desktop/Cristian-Wayni/Challenge/deudoresAPI/DeudoresApi.Tests/bin/Debug/net10.0/HealthChecks.NpgSql.dll
+/Users/valeriadiaz/Desktop/Cristian-Wayni/Challenge/deudoresAPI/DeudoresApi.Tests/bin/Debug/net10.0/AWSSDK.Core.dll
+/Users/valeriadiaz/Desktop/Cristian-Wayni/Challenge/deudoresAPI/DeudoresApi.Tests/bin/Debug/net10.0/AWSSDK.SQS.dll

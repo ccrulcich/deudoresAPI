@@ -11,9 +11,9 @@ public class EntidadesController(IQueryService queryService) : ControllerBase
     /// Retorna una entidad financiera por su código BCRA.
     /// </summary>
     [HttpGet("{codigo}")]
-    public async Task<IActionResult> GetByCodigo(string codigo)
+    public async Task<IActionResult> GetByCodigo(string codigo, CancellationToken ct)
     {
-        var entidad = await queryService.GetEntidadAsync(codigo);
+        var entidad = await queryService.GetEntidadAsync(codigo, ct);
 
         if (entidad is null)
             return NotFound($"No se encontró entidad con código: {codigo}");

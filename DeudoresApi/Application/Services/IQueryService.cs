@@ -9,16 +9,17 @@ namespace DeudoresApi.Application.Services;
 /// </summary>
 public interface IQueryService
 {
-    Task<DeudorDto?> GetDeudorAsync(string nroIdentificacion);
-    Task<EntidadDto?> GetEntidadAsync(string codigoEntidad);
+    Task<DeudorDto?> GetDeudorAsync(string nroIdentificacion, CancellationToken ct = default);
+    Task<EntidadDto?> GetEntidadAsync(string codigoEntidad, CancellationToken ct = default);
 
     /// <summary>
     /// Top N deudores por suma total de préstamos, descendente.
     /// </summary>
-    Task<IEnumerable<DeudorDto>> GetTopDeudoresAsync(int count);
+    Task<IEnumerable<DeudorDto>> GetTopDeudoresAsync(int count, CancellationToken ct = default);
 
     /// <summary>
-    /// Retorna todos los deudores con una situación máxima específica.
+    /// Retorna deudores con una situación máxima específica, con paginación.
     /// </summary>
-    Task<IEnumerable<DeudorDto>> GetDeudoresBySituacionAsync(int situacion);
+    Task<PagedResultDto<DeudorDto>> GetDeudoresBySituacionAsync(
+        int situacion, int page = 1, int pageSize = 50, CancellationToken ct = default);
 }

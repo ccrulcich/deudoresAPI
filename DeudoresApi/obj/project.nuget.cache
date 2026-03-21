@@ -1,9 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "n8dZ+SJdml4=",
+  "dgSpecHash": "5YBceSAFjJk=",
   "success": true,
   "projectFilePath": "/Users/valeriadiaz/Desktop/Cristian-Wayni/Challenge/deudoresAPI/DeudoresApi/DeudoresApi.csproj",
   "expectedPackageFiles": [
+    "/Users/valeriadiaz/.nuget/packages/aspnetcore.healthchecks.npgsql/9.0.0/aspnetcore.healthchecks.npgsql.9.0.0.nupkg.sha512",
     "/Users/valeriadiaz/.nuget/packages/awssdk.core/4.0.3.19/awssdk.core.4.0.3.19.nupkg.sha512",
     "/Users/valeriadiaz/.nuget/packages/awssdk.sqs/4.0.2.18/awssdk.sqs.4.0.2.18.nupkg.sha512",
     "/Users/valeriadiaz/.nuget/packages/bouncycastle.cryptography/2.6.2/bouncycastle.cryptography.2.6.2.nupkg.sha512",

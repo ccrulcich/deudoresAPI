@@ -9,18 +9,18 @@ using DeudoresApi.Infrastructure.Events;
 using DeudoresApi.Infrastructure.Messaging;
 using DeudoresApi.Infrastructure.Parsing;
 using DeudoresApi.Infrastructure.Repositories;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
+using System.Net.Mime;
+using System.Text.Json;
 
-// Serilog se configura antes de crear el builder para capturar
-// errores de startup (ej: connection string inválida) que ocurren
-// antes de que el DI container esté listo.
 Log.Logger = new LoggerConfiguration()
     .ReadFrom.Configuration(new ConfigurationBuilder()
         .AddJsonFile("appsettings.json")
         .AddEnvironmentVariables()
         .Build())
-    .Enrich.FromLogContext() // permite adjuntar propiedades contextuales (ej: RequestId)
+    .Enrich.FromLogContext()
     .CreateLogger();
 
 try
@@ -29,26 +29,20 @@ try
 
     var builder = WebApplication.CreateBuilder(args);
 
-    // Reemplaza el logging provider de .NET por Serilog.
-    // Esto redirige todos los ILogger<T> inyectados en el sistema a Serilog.
     builder.Host.UseSerilog();
 
     // Infrastructure — EF Core + PostgreSQL
-    // La connection string se lee desde appsettings.json o variable de entorno
-    // (Docker: ConnectionStrings__DefaultConnection=...)
     builder.Services.AddDbContext<AppDbContext>(options =>
         options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-    // Infrastructure — Repositorios concretos (Scoped: comparten DbContext por request)
+    // Infrastructure — Repositorios
     builder.Services.AddScoped<IDeudorRepository, DeudorRepository>();
     builder.Services.AddScoped<IEntidadRepository, EntidadRepository>();
 
-    // Infrastructure — Parser concreto (Scoped)
+    // Infrastructure — Parser
     builder.Services.AddScoped<IBcraParser, BcraParser>();
 
-    // Infrastructure — Event publishers
-    // CompositeEventPublisher delega a todos los publishers registrados en paralelo.
-    // Para agregar un nuevo canal (SQS, email, etc.) solo agregar un AddScoped más aquí.
+    // Infrastructure — Event publishers (CompositeEventPublisher delega a todos en paralelo)
     builder.Services.AddScoped<LogEventPublisher>();
     builder.Services.AddScoped<WebhookEventPublisher>();
     builder.Services.AddScoped<EmailEventPublisher>();
@@ -59,7 +53,6 @@ try
             sp.GetRequiredService<EmailEventPublisher>()
         ]));
 
-    // IHttpClientFactory para el webhook — permite reuso de conexiones HTTP
     builder.Services.AddHttpClient("webhook");
 
     // Application — Casos de uso
@@ -67,14 +60,11 @@ try
     builder.Services.AddScoped<IQueryService, QueryService>();
 
     // SQS / procesamiento asíncrono (opcional)
-    // Si SqsSettings:QueueUrl está configurado, se registra la cola y el worker.
-    // Si no, IImportQueue no se registra y el controller cae en modo síncrono.
     var sqsSettings = builder.Configuration.GetSection("SqsSettings").Get<SqsSettings>();
     if (!string.IsNullOrWhiteSpace(sqsSettings?.QueueUrl))
     {
         builder.Services.Configure<SqsSettings>(builder.Configuration.GetSection("SqsSettings"));
 
-        // IAmazonSQS apuntando a LocalStack (ServiceUrl) o a AWS real
         builder.Services.AddSingleton<IAmazonSQS>(_ =>
         {
             var config = new AmazonSQSConfig { ServiceURL = sqsSettings.ServiceUrl };
@@ -87,6 +77,13 @@ try
         Log.Information("SQS habilitado — cola: {QueueUrl}", sqsSettings.QueueUrl);
     }
 
+    // Health checks — permite a Docker/K8s verificar que la API y la DB están saludables
+    builder.Services.AddHealthChecks()
+        .AddNpgSql(
+            builder.Configuration.GetConnectionString("DefaultConnection")!,
+            name: "postgresql",
+            tags: ["db", "ready"]);
+
     builder.Services.AddOpenApi();
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen();
@@ -94,9 +91,7 @@ try
 
     var app = builder.Build();
 
-    // Aplica migraciones pendientes automáticamente al iniciar.
-    // Esto es esencial en Docker: la base de datos arranca vacía la primera vez
-    // y este bloque crea las tablas sin necesidad de correr `dotnet ef database update` a mano.
+    // Migraciones automáticas al iniciar (esencial para Docker: DB arranca vacía)
     using (var scope = app.Services.CreateScope())
     {
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -104,30 +99,49 @@ try
         Log.Information("Migraciones aplicadas correctamente");
     }
 
-    // Middleware de Serilog: loguea cada request HTTP con duración, status code, etc.
-    // Produce logs como: HTTP POST /Import/upload responded 200 in 143ms
+    // Middleware global de excepciones — retorna error estructurado en lugar de 500 genérico
+    app.UseExceptionHandler(errorApp =>
+    {
+        errorApp.Run(async context =>
+        {
+            context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+            context.Response.ContentType = MediaTypeNames.Application.Json;
+
+            var exceptionFeature = context.Features.Get<IExceptionHandlerFeature>();
+            if (exceptionFeature is not null)
+            {
+                Log.Error(exceptionFeature.Error, "Error no controlado en {Path}", context.Request.Path);
+
+                var error = new
+                {
+                    status = 500,
+                    message = "Ocurrió un error interno en el servidor.",
+                    traceId = context.TraceIdentifier
+                };
+
+                await context.Response.WriteAsync(JsonSerializer.Serialize(error));
+            }
+        });
+    });
+
     app.UseSerilogRequestLogging();
 
-    if (app.Environment.IsDevelopment())
-    {
-        app.MapOpenApi();
-    }
+    app.MapOpenApi();
+    app.UseSwagger();
+    app.UseSwaggerUI();
 
     app.UseHttpsRedirection();
     app.MapControllers();
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    app.MapHealthChecks("/health");
 
     app.Run();
 }
 catch (Exception ex)
 {
-    // Captura fallos fatales en el startup (ej: no puede conectar a la DB)
     Log.Fatal(ex, "La aplicación terminó de forma inesperada");
 }
 finally
 {
-    // Garantiza que todos los logs pendientes en buffer se escriban antes de salir
     Log.CloseAndFlush();
 }
 

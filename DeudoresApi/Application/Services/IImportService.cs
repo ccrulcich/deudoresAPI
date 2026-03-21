@@ -4,5 +4,5 @@ namespace DeudoresApi.Application.Services;
 
 public interface IImportService
 {
-    Task<ImportResultDto> ProcessAsync(Stream fileStream);
+    Task<ImportResultDto> ProcessAsync(Stream fileStream, CancellationToken ct = default);
 }

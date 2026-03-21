@@ -9,6 +9,6 @@ namespace DeudoresApi.Domain.Services;
 /// </summary>
 public interface IBcraParser
 {
-    IAsyncEnumerable<BcraRecord> ParseAsync(Stream fileStream);
-    Task<(List<Deudor> Deudores, List<Entidad> Entidades)> ProcessAsync(Stream fileStream);
+    IAsyncEnumerable<BcraRecord> ParseAsync(Stream fileStream, CancellationToken ct = default);
+    Task<(List<Deudor> Deudores, List<Entidad> Entidades)> ProcessAsync(Stream fileStream, CancellationToken ct = default);
 }
