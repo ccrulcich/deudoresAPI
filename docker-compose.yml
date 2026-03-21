@@ -1,0 +1,42 @@
+services:
+
+  # ─── Base de Datos PostgreSQL ───────────────────────────────────────────────
+  postgres:
+    image: postgres:17-alpine          # Imagen oficial de Postgres, versión liviana (Alpine)
+    container_name: deudores_postgres
+    environment:
+      POSTGRES_DB: deudores_db         # Nombre de la base de datos que se crea automáticamente
+      POSTGRES_USER: postgres          # Usuario de Postgres
+      POSTGRES_PASSWORD: postgres      # Contraseña (cambiar en producción real)
+    ports:
+      - "5432:5432"                    # Expone Postgres en tu Mac para poder conectarte con DBeaver, etc.
+    volumes:
+      - postgres_data:/var/lib/postgresql/data   # Los datos persisten aunque pares/borres el contenedor
+    healthcheck:
+      # Docker espera a que Postgres esté realmente listo antes de iniciar la API
+      test: ["CMD-SHELL", "pg_isready -U postgres -d deudores_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ─── API .NET ───────────────────────────────────────────────────────────────
+  api:
+    build:
+      context: .                       # Busca el Dockerfile en la raíz del proyecto
+      dockerfile: Dockerfile
+    container_name: deudores_api
+    ports:
+      - "8080:8080"                    # Tu Mac:8080 → Contenedor:8080
+    environment:
+      # Sobreescribimos el connection string para que apunte al contenedor de Postgres.
+      # "postgres" es el nombre del servicio definido arriba — Docker resuelve el DNS automáticamente.
+      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=deudores_db;Username=postgres;Password=postgres"
+      ASPNETCORE_ENVIRONMENT: Production
+    depends_on:
+      postgres:
+        condition: service_healthy     # La API espera el healthcheck de Postgres antes de arrancar
+    restart: on-failure                # Reinicia si falla (ej: si Postgres todavía no aceptaba conexiones)
+
+# ─── Volúmenes ──────────────────────────────────────────────────────────────
+volumes:
+  postgres_data:                       # Volumen nombrado — Docker lo gestiona en tu Mac
