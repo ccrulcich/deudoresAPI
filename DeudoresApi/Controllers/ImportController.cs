@@ -1,47 +1,54 @@
+using DeudoresApi.Services;
 using Microsoft.AspNetCore.Mvc;
 
-namespace DeudoresApi.Controllers
+namespace DeudoresApi.Controllers;
+
+[ApiController]
+[Route("[controller]")]
+public class ImportController : ControllerBase
 {
-    [ApiController]
-    [Route("[controller]")]
-    public class ImportController : ControllerBase
+    [HttpPost("upload")]
+    [RequestSizeLimit(long.MaxValue)]
+    public async Task<IActionResult> Upload(IFormFile file)
     {
-        [HttpPost("upload")]
-        [RequestSizeLimit(long.MaxValue)]
-        public async Task<IActionResult> Upload(IFormFile file)
+        if (file == null || file.Length == 0)
+            return BadRequest("Archivo inválido");
+
+        using var stream = file.OpenReadStream();
+
+        var (deudores, entidades) = await BcraParser.ProcessAsync(stream);
+
+        return Ok(new
         {
-            if (file == null || file.Length == 0)
-                return BadRequest("Archivo inválido");
+            message = "Archivo procesado",
+            deudores = deudores.Count,
+            entidades = entidades.Count
+        });
+    }
 
-            var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "Inputs");
+    /// <summary>
+    /// Procesa un archivo desde una ruta local del servidor (útil para archivos grandes).
+    /// </summary>
+    [HttpPost("process-local")]
+    public async Task<IActionResult> ProcessLocal([FromBody] ProcessLocalRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.FilePath))
+            return BadRequest("La ruta del archivo es requerida");
 
-            if (!Directory.Exists(uploadsFolder))
-                Directory.CreateDirectory(uploadsFolder);
+        if (!System.IO.File.Exists(request.FilePath))
+            return NotFound($"Archivo no encontrado: {request.FilePath}");
 
-            var filePath = Path.Combine(uploadsFolder, file.FileName);
+        using var stream = System.IO.File.OpenRead(request.FilePath);
 
-            // Save file
-            using (var stream = new FileStream(filePath, FileMode.Create))
-            {
-                await file.CopyToAsync(stream);
-            }
+        var (deudores, entidades) = await BcraParser.ProcessAsync(stream);
 
-            // Proccess from diks (streaming)
-            int count = 0;
-
-            using var reader = new StreamReader(filePath);
-
-            while (!reader.EndOfStream)
-            {
-                var line = await reader.ReadLineAsync();
-                count++;
-            }
-
-            return Ok(new
-            {
-                message = "Archivo procesado",
-                lines = count
-            });
-        }
+        return Ok(new
+        {
+            message = "Archivo procesado",
+            deudores = deudores.Count,
+            entidades = entidades.Count
+        });
     }
 }
+
+public record ProcessLocalRequest(string FilePath);
