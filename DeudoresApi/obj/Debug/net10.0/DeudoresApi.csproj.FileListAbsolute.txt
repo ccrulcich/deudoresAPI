@@ -6,6 +6,8 @@
 /Users/valeriadiaz/Desktop/Cristian-Wayni/Challenge/deudoresAPI/DeudoresApi/bin/Debug/net10.0/DeudoresApi.runtimeconfig.json
 /Users/valeriadiaz/Desktop/Cristian-Wayni/Challenge/deudoresAPI/DeudoresApi/bin/Debug/net10.0/DeudoresApi.dll
 /Users/valeriadiaz/Desktop/Cristian-Wayni/Challenge/deudoresAPI/DeudoresApi/bin/Debug/net10.0/DeudoresApi.pdb
+/Users/valeriadiaz/Desktop/Cristian-Wayni/Challenge/deudoresAPI/DeudoresApi/bin/Debug/net10.0/AWSSDK.Core.dll
+/Users/valeriadiaz/Desktop/Cristian-Wayni/Challenge/deudoresAPI/DeudoresApi/bin/Debug/net10.0/AWSSDK.SQS.dll
 /Users/valeriadiaz/Desktop/Cristian-Wayni/Challenge/deudoresAPI/DeudoresApi/bin/Debug/net10.0/BouncyCastle.Cryptography.dll
 /Users/valeriadiaz/Desktop/Cristian-Wayni/Challenge/deudoresAPI/DeudoresApi/bin/Debug/net10.0/Humanizer.dll
 /Users/valeriadiaz/Desktop/Cristian-Wayni/Challenge/deudoresAPI/DeudoresApi/bin/Debug/net10.0/MailKit.dll

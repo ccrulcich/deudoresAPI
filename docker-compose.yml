@@ -19,6 +19,24 @@ services:
       timeout: 5s
       retries: 10
 
+  # ─── LocalStack (simula AWS SQS en local) ───────────────────────────────────
+  localstack:
+    image: localstack/localstack:latest
+    container_name: deudores_localstack
+    ports:
+      - "4566:4566"
+    environment:
+      SERVICES: sqs                    # Solo levantamos SQS (más liviano)
+      DEFAULT_REGION: us-east-1
+    volumes:
+      - localstack_data:/var/lib/localstack
+      - ./localstack-init:/etc/localstack/init/ready.d  # Script para crear la cola al iniciar
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s http://localhost:4566/_localstack/health | grep -q '\"sqs\": \"running\"'"]
+      interval: 5s
+      timeout: 5s
+      retries: 15
+
   # ─── API .NET ───────────────────────────────────────────────────────────────
   api:
     build:
@@ -32,11 +50,20 @@ services:
       # "postgres" es el nombre del servicio definido arriba — Docker resuelve el DNS automáticamente.
       ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=deudores_db;Username=postgres;Password=postgres"
       ASPNETCORE_ENVIRONMENT: Production
+      # SQS — apunta a LocalStack. Comentar estas líneas para deshabilitar el procesamiento async.
+      SqsSettings__ServiceUrl: "http://localstack:4566"
+      SqsSettings__QueueUrl: "http://localstack:4566/000000000000/import-queue"
+      SqsSettings__AccessKey: "test"
+      SqsSettings__SecretKey: "test"
+      SqsSettings__Region: "us-east-1"
     depends_on:
       postgres:
         condition: service_healthy     # La API espera el healthcheck de Postgres antes de arrancar
+      localstack:
+        condition: service_healthy     # La API espera a que LocalStack esté listo
     restart: on-failure                # Reinicia si falla (ej: si Postgres todavía no aceptaba conexiones)
 
 # ─── Volúmenes ──────────────────────────────────────────────────────────────
 volumes:
   postgres_data:                       # Volumen nombrado — Docker lo gestiona en tu Mac
+  localstack_data:

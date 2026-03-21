@@ -1,9 +1,12 @@
+using Amazon.SQS;
 using DeudoresApi.Application.Services;
 using DeudoresApi.Domain.Events;
+using DeudoresApi.Domain.Messaging;
 using DeudoresApi.Domain.Repositories;
 using DeudoresApi.Domain.Services;
 using DeudoresApi.Infrastructure.Data;
 using DeudoresApi.Infrastructure.Events;
+using DeudoresApi.Infrastructure.Messaging;
 using DeudoresApi.Infrastructure.Parsing;
 using DeudoresApi.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -62,6 +65,27 @@ try
     // Application — Casos de uso
     builder.Services.AddScoped<IImportService, ImportService>();
     builder.Services.AddScoped<IQueryService, QueryService>();
+
+    // SQS / procesamiento asíncrono (opcional)
+    // Si SqsSettings:QueueUrl está configurado, se registra la cola y el worker.
+    // Si no, IImportQueue no se registra y el controller cae en modo síncrono.
+    var sqsSettings = builder.Configuration.GetSection("SqsSettings").Get<SqsSettings>();
+    if (!string.IsNullOrWhiteSpace(sqsSettings?.QueueUrl))
+    {
+        builder.Services.Configure<SqsSettings>(builder.Configuration.GetSection("SqsSettings"));
+
+        // IAmazonSQS apuntando a LocalStack (ServiceUrl) o a AWS real
+        builder.Services.AddSingleton<IAmazonSQS>(_ =>
+        {
+            var config = new AmazonSQSConfig { ServiceURL = sqsSettings.ServiceUrl };
+            return new AmazonSQSClient(sqsSettings.AccessKey, sqsSettings.SecretKey, config);
+        });
+
+        builder.Services.AddScoped<IImportQueue, SqsImportQueue>();
+        builder.Services.AddHostedService<SqsImportWorker>();
+
+        Log.Information("SQS habilitado — cola: {QueueUrl}", sqsSettings.QueueUrl);
+    }
 
     builder.Services.AddOpenApi();
     builder.Services.AddEndpointsApiExplorer();
