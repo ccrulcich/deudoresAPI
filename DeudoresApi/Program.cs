@@ -28,6 +28,7 @@ builder.Services.AddScoped<IEventPublisher, LogEventPublisher>();
 
 // Application — Casos de uso
 builder.Services.AddScoped<IImportService, ImportService>();
+builder.Services.AddScoped<IQueryService, QueryService>();
 
 builder.Services.AddOpenApi();
 builder.Services.AddEndpointsApiExplorer();

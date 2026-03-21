@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("DeudoresApi")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f432fcae3e6128d128e92f2c05a88cfed729dff1")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+a5f5a26a5a8b79ec039e17bb7858b99466db2a12")]
 [assembly: System.Reflection.AssemblyProductAttribute("DeudoresApi")]
 [assembly: System.Reflection.AssemblyTitleAttribute("DeudoresApi")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
