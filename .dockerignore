@@ -1,0 +1,11 @@
+**/.DS_Store
+**/.git
+**/.gitignore
+**/.vs
+**/.vscode
+**/bin
+**/obj
+**/out
+**/*.user
+**/*.suo
+**/Thumbs.db

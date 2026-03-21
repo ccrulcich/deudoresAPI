@@ -70,6 +70,16 @@ try
 
     var app = builder.Build();
 
+    // Aplica migraciones pendientes automáticamente al iniciar.
+    // Esto es esencial en Docker: la base de datos arranca vacía la primera vez
+    // y este bloque crea las tablas sin necesidad de correr `dotnet ef database update` a mano.
+    using (var scope = app.Services.CreateScope())
+    {
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        db.Database.Migrate();
+        Log.Information("Migraciones aplicadas correctamente");
+    }
+
     // Middleware de Serilog: loguea cada request HTTP con duración, status code, etc.
     // Produce logs como: HTTP POST /Import/upload responded 200 in 143ms
     app.UseSerilogRequestLogging();
