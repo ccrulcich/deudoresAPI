@@ -35,4 +35,20 @@ public class DeudoresController(IQueryService queryService) : ControllerBase
         var top = await queryService.GetTopDeudoresAsync(n);
         return Ok(top);
     }
+
+    /// <summary>
+    /// Retorna todos los deudores que tengan una situación máxima específica (1–6).
+    /// </summary>
+    [HttpGet]
+    public async Task<IActionResult> GetBySituacion([FromQuery] int? situacion)
+    {
+        if (situacion is null)
+            return BadRequest("El parámetro 'situacion' es requerido.");
+
+        if (situacion < 1 || situacion > 6)
+            return BadRequest("El valor de 'situacion' debe ser entre 1 y 6.");
+
+        var deudores = await queryService.GetDeudoresBySituacionAsync(situacion.Value);
+        return Ok(deudores);
+    }
 }

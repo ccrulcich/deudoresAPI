@@ -33,4 +33,12 @@ public class QueryService(IDeudorRepository deudorRepo, IEntidadRepository entid
         return deudores.Select(d =>
             new DeudorDto(d.NroIdentificacion, d.SituacionMaxima, d.SumaTotalPrestamos));
     }
+
+    public async Task<IEnumerable<DeudorDto>> GetDeudoresBySituacionAsync(int situacion)
+    {
+        var deudores = await deudorRepo.GetBySituacionAsync(situacion);
+
+        return deudores.Select(d =>
+            new DeudorDto(d.NroIdentificacion, d.SituacionMaxima, d.SumaTotalPrestamos));
+    }
 }

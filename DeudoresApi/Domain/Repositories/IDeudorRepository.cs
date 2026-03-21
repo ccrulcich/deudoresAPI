@@ -12,4 +12,9 @@ public interface IDeudorRepository
     /// Retorna los N deudores con mayor suma total de préstamos.
     /// </summary>
     Task<IEnumerable<Deudor>> GetTopAsync(int count);
+
+    /// <summary>
+    /// Retorna todos los deudores con una situación máxima específica.
+    /// </summary>
+    Task<IEnumerable<Deudor>> GetBySituacionAsync(int situacion);
 }

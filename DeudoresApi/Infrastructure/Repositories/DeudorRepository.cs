@@ -49,4 +49,12 @@ public class DeudorRepository(AppDbContext db) : IDeudorRepository
             .Take(count)
             .ToListAsync();
     }
+
+    public async Task<IEnumerable<Deudor>> GetBySituacionAsync(int situacion)
+    {
+        return await db.Deudores
+            .Where(d => d.SituacionMaxima == situacion)
+            .OrderByDescending(d => d.SumaTotalPrestamos)
+            .ToListAsync();
+    }
 }
