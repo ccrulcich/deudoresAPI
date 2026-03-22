@@ -34,7 +34,7 @@ cd deudoresAPI
 docker compose up --build
 ```
 
-Listo. La API queda disponible en **http://localhost:8080**  
+La API queda disponible en **http://localhost:8080**  
 Swagger UI en **http://localhost:8080/swagger**
 
 Docker Compose levanta automáticamente:
