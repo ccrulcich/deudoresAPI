@@ -9,7 +9,7 @@ namespace DeudoresApi.Application.Services;
 /// </summary>
 public interface IQueryService
 {
-    Task<DeudorDto?> GetDeudorAsync(string nroIdentificacion, CancellationToken ct = default);
+    Task<DeudorDto?> GetDeudorAsync(string cuit, CancellationToken ct = default);
     Task<EntidadDto?> GetEntidadAsync(string codigoEntidad, CancellationToken ct = default);
 
     /// <summary>

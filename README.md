@@ -103,7 +103,7 @@ curl http://localhost:8080/Deudores/20123456781
 ```
 ```json
 {
-  "nroIdentificacion": "20123456781",
+  "cuit": "20123456781",
   "situacionMaxima": 3,
   "sumaTotalPrestamos": 150000.00
 }

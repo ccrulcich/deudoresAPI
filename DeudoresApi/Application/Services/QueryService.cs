@@ -10,12 +10,12 @@ namespace DeudoresApi.Application.Services;
 /// </summary>
 public class QueryService(IDeudorRepository deudorRepo, IEntidadRepository entidadRepo) : IQueryService
 {
-    public async Task<DeudorDto?> GetDeudorAsync(string nroIdentificacion, CancellationToken ct = default)
+    public async Task<DeudorDto?> GetDeudorAsync(string cuit, CancellationToken ct = default)
     {
-        var deudor = await deudorRepo.GetByIdentificacionAsync(nroIdentificacion, ct);
+        var deudor = await deudorRepo.GetByIdentificacionAsync(cuit, ct);
         if (deudor is null) return null;
 
-        return new DeudorDto(deudor.NroIdentificacion, deudor.SituacionMaxima, deudor.SumaTotalPrestamos);
+        return new DeudorDto(deudor.Cuit, deudor.SituacionMaxima, deudor.SumaTotalPrestamos);
     }
 
     public async Task<EntidadDto?> GetEntidadAsync(string codigoEntidad, CancellationToken ct = default)
@@ -31,7 +31,7 @@ public class QueryService(IDeudorRepository deudorRepo, IEntidadRepository entid
         var deudores = await deudorRepo.GetTopAsync(count, ct);
 
         return deudores.Select(d =>
-            new DeudorDto(d.NroIdentificacion, d.SituacionMaxima, d.SumaTotalPrestamos));
+            new DeudorDto(d.Cuit, d.SituacionMaxima, d.SumaTotalPrestamos));
     }
 
     public async Task<PagedResultDto<DeudorDto>> GetDeudoresBySituacionAsync(
@@ -40,7 +40,7 @@ public class QueryService(IDeudorRepository deudorRepo, IEntidadRepository entid
         var (items, totalCount) = await deudorRepo.GetBySituacionAsync(situacion, page, pageSize, ct);
 
         var dtos = items.Select(d =>
-            new DeudorDto(d.NroIdentificacion, d.SituacionMaxima, d.SumaTotalPrestamos));
+            new DeudorDto(d.Cuit, d.SituacionMaxima, d.SumaTotalPrestamos));
 
         return new PagedResultDto<DeudorDto>(dtos, totalCount, page, pageSize);
     }

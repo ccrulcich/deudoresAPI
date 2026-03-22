@@ -23,7 +23,7 @@ namespace DeudoresApi.Infrastructure.Data.Migrations
 
             modelBuilder.Entity("DeudoresApi.Domain.Models.Deudor", b =>
                 {
-                    b.Property<string>("NroIdentificacion")
+                    b.Property<string>("Cuit")
                         .HasMaxLength(11)
                         .HasColumnType("character varying(11)");
 
@@ -33,7 +33,7 @@ namespace DeudoresApi.Infrastructure.Data.Migrations
                     b.Property<decimal>("SumaTotalPrestamos")
                         .HasColumnType("numeric(18,2)");
 
-                    b.HasKey("NroIdentificacion");
+                    b.HasKey("Cuit");
 
                     b.HasIndex("SituacionMaxima")
                         .HasDatabaseName("IX_Deudores_SituacionMaxima");

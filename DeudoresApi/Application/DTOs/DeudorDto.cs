@@ -6,6 +6,6 @@ namespace DeudoresApi.Application.DTOs;
 /// sin acoplar al consumidor con el modelo de dominio interno.
 /// </summary>
 public record DeudorDto(
-    string NroIdentificacion,
+    string Cuit,
     int SituacionMaxima,
     decimal SumaTotalPrestamos);
