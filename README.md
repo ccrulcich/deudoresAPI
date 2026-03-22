@@ -27,19 +27,40 @@ API REST en .NET para procesar el archivo de la Central de Deudores del BCRA, pe
 
 ```bash
 # 1. Clonar el repositorio
-git clone <url-del-repo>
+git clone https://github.com/ccrulcich/deudoresAPI.git
 cd deudoresAPI
 
 # 2. Levantar la aplicación
 docker compose up --build
 ```
 
-La API queda disponible en **http://localhost:8080**  
+Listo. La API queda disponible en **http://localhost:8080**  
 Swagger UI en **http://localhost:8080/swagger**
 
 Docker Compose levanta automáticamente:
 - `postgres` — PostgreSQL 17 con healthcheck
-- `api` — la aplicación .NET (espera a que Postgres esté listo, aplica migraciones al iniciar)
+- `localstack` — simula AWS SQS en local (para procesamiento asíncrono)
+- `api` — la aplicación .NET (espera a que Postgres y LocalStack estén listos, aplica migraciones al iniciar)
+
+### Probar con archivos de muestra
+
+Los archivos de prueba están incluidos en la carpeta `Docs/` y quedan disponibles dentro del contenedor en `/data/`:
+
+| Archivo | Descripción |
+|---------|-------------|
+| `/data/deudores-prueba-quarter.txt` | Subconjunto pequeño (~25% del total), ideal para pruebas rápidas |
+| `/data/deudores-prueba.txt` | Archivo de prueba completo |
+
+Desde **Swagger UI** (`http://localhost:8080/swagger`):
+1. Ir al endpoint `POST /Import/upload`
+2. En el campo `filePath` ingresar: `/data/deudores-prueba-quarter.txt`
+3. Ejecutar — la API procesa el archivo y responde con el resumen
+
+O con curl:
+```bash
+curl -X POST http://localhost:8080/Import/upload \
+  -F "filePath=/data/deudores-prueba-quarter.txt"
+```
 
 ---
 
@@ -140,7 +161,7 @@ Todas las variables de entorno siguen la convención de ASP.NET Core (`__` como 
 | `FileUpload__MaxFileSizeMb` | Tamaño máximo del archivo en MB (upload) | `6000` |
 | `FileUpload__AllowedExtensions` | Extensiones permitidas | `.txt` |
 
-Copiá `.env.example` a `.env` y completá los valores que necesitás.
+El archivo `.env` ya está incluido en el repo con valores listos para ejecutar localmente. Si querés personalizar algún valor (webhook, email SMTP), editá el `.env` directamente.
 
 ---
 
