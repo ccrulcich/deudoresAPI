@@ -8,14 +8,18 @@ namespace DeudoresApi.Application.Services;
 /// Usa los repositorios para obtener datos y los proyecta a DTOs.
 /// El mapeo Domain → DTO vive aquí (en Application), nunca en el controller ni en el repo.
 /// </summary>
-public class QueryService(IDeudorRepository deudorRepo, IEntidadRepository entidadRepo) : IQueryService
+public class QueryService(
+    IDeudorRepository deudorRepo,
+    IEntidadRepository entidadRepo,
+    INameLookupService nameLookup) : IQueryService
 {
     public async Task<DeudorDto?> GetDeudorAsync(string cuit, CancellationToken ct = default)
     {
         var deudor = await deudorRepo.GetByIdentificacionAsync(cuit, ct);
         if (deudor is null) return null;
 
-        return new DeudorDto(deudor.Cuit, deudor.SituacionMaxima, deudor.SumaTotalPrestamos);
+        return new DeudorDto(deudor.Cuit, deudor.SituacionMaxima, deudor.SumaTotalPrestamos,
+            nameLookup.GetDeudorNombre(deudor.Cuit));
     }
 
     public async Task<EntidadDto?> GetEntidadAsync(string codigoEntidad, CancellationToken ct = default)
@@ -23,7 +27,8 @@ public class QueryService(IDeudorRepository deudorRepo, IEntidadRepository entid
         var entidad = await entidadRepo.GetByCodigoAsync(codigoEntidad, ct);
         if (entidad is null) return null;
 
-        return new EntidadDto(entidad.CodigoEntidad, entidad.SumaTotalPrestamos);
+        return new EntidadDto(entidad.CodigoEntidad, entidad.SumaTotalPrestamos,
+            nameLookup.GetEntidadNombre(entidad.CodigoEntidad));
     }
 
     public async Task<IEnumerable<DeudorDto>> GetTopDeudoresAsync(int count, CancellationToken ct = default)
@@ -31,7 +36,8 @@ public class QueryService(IDeudorRepository deudorRepo, IEntidadRepository entid
         var deudores = await deudorRepo.GetTopAsync(count, ct);
 
         return deudores.Select(d =>
-            new DeudorDto(d.Cuit, d.SituacionMaxima, d.SumaTotalPrestamos));
+            new DeudorDto(d.Cuit, d.SituacionMaxima, d.SumaTotalPrestamos,
+                nameLookup.GetDeudorNombre(d.Cuit)));
     }
 
     public async Task<PagedResultDto<DeudorDto>> GetDeudoresBySituacionAsync(
@@ -40,7 +46,8 @@ public class QueryService(IDeudorRepository deudorRepo, IEntidadRepository entid
         var (items, totalCount) = await deudorRepo.GetBySituacionAsync(situacion, page, pageSize, ct);
 
         var dtos = items.Select(d =>
-            new DeudorDto(d.Cuit, d.SituacionMaxima, d.SumaTotalPrestamos));
+            new DeudorDto(d.Cuit, d.SituacionMaxima, d.SumaTotalPrestamos,
+                nameLookup.GetDeudorNombre(d.Cuit)));
 
         return new PagedResultDto<DeudorDto>(dtos, totalCount, page, pageSize);
     }

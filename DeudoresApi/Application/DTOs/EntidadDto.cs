@@ -5,4 +5,5 @@ namespace DeudoresApi.Application.DTOs;
 /// </summary>
 public record EntidadDto(
     string CodigoEntidad,
-    decimal SumaTotalPrestamos);
+    decimal SumaTotalPrestamos,
+    string Nombre = "Nombre no brindado por ex entidad financiera");

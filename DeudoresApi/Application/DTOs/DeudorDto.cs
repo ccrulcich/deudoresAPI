@@ -8,4 +8,5 @@ namespace DeudoresApi.Application.DTOs;
 public record DeudorDto(
     string Cuit,
     int SituacionMaxima,
-    decimal SumaTotalPrestamos);
+    decimal SumaTotalPrestamos,
+    string Nombre = "Nombre no brindado por ex entidad financiera");
