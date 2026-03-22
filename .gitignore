@@ -1,0 +1,14 @@
+# .NET build artifacts
+bin/
+obj/
+
+# Environment variables (contain secrets)
+.env
+
+# Large data files - not suitable for version control
+Docs/deudores.txt
+Docs/deudores-prueba.txt
+Docs/deudores-prueba-quarter.txt
+
+# macOS
+.DS_Store
