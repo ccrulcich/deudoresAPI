@@ -30,11 +30,7 @@ API REST en .NET para procesar el archivo de la Central de Deudores del BCRA, pe
 git clone <url-del-repo>
 cd deudoresAPI
 
-# 2. (Opcional) Configurar variables de entorno
-cp .env.example .env
-# Editar .env si querés webhook o email
-
-# 3. Levantar la aplicación
+# 2. Levantar la aplicación
 docker compose up --build
 ```
 
