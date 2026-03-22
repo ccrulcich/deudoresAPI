@@ -46,7 +46,7 @@ services:
     ports:
       - "8080:8080"                    # Tu Mac:8080 → Contenedor:8080
     volumes:
-      - /Users/valeriadiaz/Desktop/Cristian-Wayni/Challenge/Docs:/data:ro  # Monta la carpeta Docs como /data (solo lectura)
+      - ../Docs:/data:ro  # Monta la carpeta Docs como /data (solo lectura)
     env_file: .env                     # Todas las variables de entorno en un solo archivo
     depends_on:
       postgres:

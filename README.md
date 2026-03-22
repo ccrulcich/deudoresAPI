@@ -27,14 +27,10 @@ API REST en .NET para procesar el archivo de la Central de Deudores del BCRA, pe
 
 ```bash
 # 1. Clonar el repositorio
-git clone <url-del-repo>
+git clone https://github.com/ccrulcich/deudoresAPI.git
 cd deudoresAPI
 
-# 2. (Opcional) Configurar variables de entorno
-cp .env.example .env
-# Editar .env si querés webhook o email
-
-# 3. Levantar la aplicación
+# 2. Levantar la aplicación
 docker compose up --build
 ```
 
@@ -43,7 +39,32 @@ Swagger UI en **http://localhost:8080/swagger**
 
 Docker Compose levanta automáticamente:
 - `postgres` — PostgreSQL 17 con healthcheck
-- `api` — la aplicación .NET (espera a que Postgres esté listo, aplica migraciones al iniciar)
+- `localstack` — simula AWS SQS en local (para procesamiento asíncrono)
+- `api` — la aplicación .NET (espera a que Postgres y LocalStack estén listos, aplica migraciones al iniciar)
+
+### Probar con el archivo del BCRA
+
+El archivo de datos (`deudores.txt`) **no está incluido en el repositorio** por su tamaño. Debés obtenerlo del sitio del BCRA y colocarlo en la carpeta `Docs/` antes de levantar Docker:
+
+```
+Challenge/
+├── deudoresAPI/   ← repositorio clonado
+└── Docs/
+    └── deudores.txt   ← colocar aquí
+```
+
+Docker monta esa carpeta automáticamente como `/data` dentro del contenedor — no requiere ningún paso adicional.
+
+Desde **Swagger UI** (`http://localhost:8080/swagger`):
+1. Ir al endpoint `POST /Import/upload`
+2. En el campo `filePath` ingresar: `/data/deudores.txt`
+3. Ejecutar — la API procesa el archivo y responde con el resumen
+
+O con curl:
+```bash
+curl -X POST http://localhost:8080/Import/upload \
+  -F "filePath=/data/deudores.txt"
+```
 
 ---
 
@@ -144,7 +165,7 @@ Todas las variables de entorno siguen la convención de ASP.NET Core (`__` como 
 | `FileUpload__MaxFileSizeMb` | Tamaño máximo del archivo en MB (upload) | `6000` |
 | `FileUpload__AllowedExtensions` | Extensiones permitidas | `.txt` |
 
-Copiá `.env.example` a `.env` y completá los valores que necesitás.
+El archivo `.env` ya está incluido en el repo con valores listos para ejecutar localmente. Si querés personalizar algún valor (webhook, email SMTP), editá el `.env` directamente.
 
 ---
 
@@ -225,6 +246,6 @@ DeudoresApi/
 
 DeudoresApi.Tests/        # Tests unitarios (xUnit)
 Dockerfile                # Build multi-stage para la API
-docker-compose.yml        # Orquestación API + PostgreSQL
-.env.example              # Plantilla de variables de entorno
+docker-compose.yml        # Orquestación API + PostgreSQL + LocalStack
+.env                      # Variables de entorno (incluido en el repo)
 ```

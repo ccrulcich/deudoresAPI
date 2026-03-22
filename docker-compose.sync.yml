@@ -27,7 +27,7 @@ services:
     ports:
       - "8080:8080"
     volumes:
-      - /Users/valeriadiaz/Desktop/Cristian-Wayni/Challenge/Docs:/data:ro
+      - ../Docs:/data:ro
     env_file: .env
     environment:
       # Sin SqsSettings → modo síncrono automáticamente (sobrescriben .env)
