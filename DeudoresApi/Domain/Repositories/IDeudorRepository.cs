@@ -6,7 +6,7 @@ public interface IDeudorRepository
 {
     Task UpsertRangeAsync(IEnumerable<Deudor> deudores, CancellationToken ct = default);
 
-    Task<Deudor?> GetByIdentificacionAsync(string nroIdentificacion, CancellationToken ct = default);
+    Task<Deudor?> GetByIdentificacionAsync(string cuit, CancellationToken ct = default);
 
     /// <summary>
     /// Retorna los N deudores con mayor suma total de préstamos.

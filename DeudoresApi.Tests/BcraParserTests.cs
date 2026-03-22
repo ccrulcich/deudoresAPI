@@ -52,7 +52,7 @@ public class BcraParserTests
 
         Assert.Single(records);
         Assert.Equal("00001", records[0].CodigoEntidad);
-        Assert.Equal("20123456781", records[0].NroIdentificacion);
+        Assert.Equal("20123456781", records[0].Cuit);
         Assert.Equal(1, records[0].Situacion);
         Assert.Equal(10000m, records[0].Prestamos);
     }
@@ -169,7 +169,7 @@ public class BcraParserTests
         var (deudores, entidades) = await parser.ProcessAsync(ToStream(line));
 
         Assert.Single(deudores);
-        Assert.Equal("20123456781", deudores[0].NroIdentificacion);
+        Assert.Equal("20123456781", deudores[0].Cuit);
         Assert.Equal(2, deudores[0].SituacionMaxima);
         Assert.Equal(5000m, deudores[0].SumaTotalPrestamos);
 

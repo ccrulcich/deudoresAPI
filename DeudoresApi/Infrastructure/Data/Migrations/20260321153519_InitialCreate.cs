@@ -14,13 +14,13 @@ namespace DeudoresApi.Infrastructure.Data.Migrations
                 name: "Deudores",
                 columns: table => new
                 {
-                    NroIdentificacion = table.Column<string>(type: "character varying(11)", maxLength: 11, nullable: false),
+                    Cuit = table.Column<string>(type: "character varying(11)", maxLength: 11, nullable: false),
                     SituacionMaxima = table.Column<int>(type: "integer", nullable: false),
                     SumaTotalPrestamos = table.Column<decimal>(type: "numeric(18,2)", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Deudores", x => x.NroIdentificacion);
+                    table.PrimaryKey("PK_Deudores", x => x.Cuit);
                 });
 
             migrationBuilder.CreateTable(
