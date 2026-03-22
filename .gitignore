@@ -1,14 +1,21 @@
-# .NET build artifacts
+# Secretos — nunca commitear
+.env
+
+# .NET build output
 bin/
 obj/
-
-# Environment variables (contain secrets)
-.env
 
 # Large data files - not suitable for version control
 Docs/deudores.txt
 Docs/deudores-prueba.txt
 Docs/deudores-prueba-quarter.txt
 
-# macOS
+# IDE
+.vs/
+.vscode/
+*.user
+*.suo
+
+# OS
 .DS_Store
+Thumbs.db

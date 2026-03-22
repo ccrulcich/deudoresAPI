@@ -6,6 +6,7 @@ using DeudoresApi.Domain.Repositories;
 using DeudoresApi.Domain.Services;
 using DeudoresApi.Infrastructure.Data;
 using DeudoresApi.Infrastructure.Events;
+using DeudoresApi.Infrastructure.NameLookup;
 using DeudoresApi.Infrastructure.Messaging;
 using DeudoresApi.Infrastructure.Parsing;
 using DeudoresApi.Infrastructure.Repositories;
@@ -41,6 +42,9 @@ try
 
     // Infrastructure — Parser
     builder.Services.AddScoped<IBcraParser, BcraParser>();
+
+    // Infrastructure — Lookup de nombres (Nomdeu.txt / Maeent.txt)
+    builder.Services.AddSingleton<INameLookupService, NameLookupService>();
 
     // Infrastructure — Event publishers (CompositeEventPublisher delega a todos en paralelo)
     builder.Services.AddScoped<LogEventPublisher>();

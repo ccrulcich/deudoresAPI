@@ -71,8 +71,16 @@ public class SqsImportWorker(
                 result.DeudoresCount, result.EntidadesCount, filePath);
 
             // Eliminar el archivo temporal luego de procesarlo con éxito
-            if (File.Exists(filePath))
-                File.Delete(filePath);
+            // (solo archivos temporales — los montados como volumen se ignoran)
+            try
+            {
+                if (File.Exists(filePath) && filePath.StartsWith(Path.GetTempPath()))
+                    File.Delete(filePath);
+            }
+            catch (IOException)
+            {
+                logger.LogDebug("No se pudo eliminar {FilePath} (puede ser read-only o volumen montado)", filePath);
+            }
 
             // Borrar el mensaje de la cola para que no sea reprocesado
             await sqs.DeleteMessageAsync(_queueUrl, message.ReceiptHandle, ct);

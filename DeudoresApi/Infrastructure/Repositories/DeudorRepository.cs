@@ -21,15 +21,15 @@ public class DeudorRepository(AppDbContext db, ILogger<DeudorRepository> logger)
             ct.ThrowIfCancellationRequested();
 
             var batch = list.Skip(offset).Take(BatchSize).ToList();
-            var keys = batch.Select(d => d.NroIdentificacion).ToHashSet();
+            var keys = batch.Select(d => d.Cuit).ToHashSet();
 
             var existingKeys = await db.Deudores
-                .Where(d => keys.Contains(d.NroIdentificacion))
-                .Select(d => d.NroIdentificacion)
+                .Where(d => keys.Contains(d.Cuit))
+                .Select(d => d.Cuit)
                 .ToHashSetAsync(ct);
 
-            var toInsert = batch.Where(d => !existingKeys.Contains(d.NroIdentificacion)).ToList();
-            var toUpdate = batch.Where(d => existingKeys.Contains(d.NroIdentificacion)).ToList();
+            var toInsert = batch.Where(d => !existingKeys.Contains(d.Cuit)).ToList();
+            var toUpdate = batch.Where(d => existingKeys.Contains(d.Cuit)).ToList();
 
             if (toInsert.Count > 0)
                 await db.Deudores.AddRangeAsync(toInsert, ct);
@@ -37,7 +37,7 @@ public class DeudorRepository(AppDbContext db, ILogger<DeudorRepository> logger)
             foreach (var d in toUpdate)
             {
                 await db.Deudores
-                    .Where(x => x.NroIdentificacion == d.NroIdentificacion)
+                    .Where(x => x.Cuit == d.Cuit)
                     .ExecuteUpdateAsync(s => s
                         .SetProperty(x => x.SituacionMaxima, d.SituacionMaxima)
                         .SetProperty(x => x.SumaTotalPrestamos, d.SumaTotalPrestamos), ct);
@@ -53,9 +53,9 @@ public class DeudorRepository(AppDbContext db, ILogger<DeudorRepository> logger)
         }
     }
 
-    public async Task<Deudor?> GetByIdentificacionAsync(string nroIdentificacion, CancellationToken ct = default)
+    public async Task<Deudor?> GetByIdentificacionAsync(string cuit, CancellationToken ct = default)
     {
-        return await db.Deudores.FindAsync([nroIdentificacion], ct);
+        return await db.Deudores.FindAsync([cuit], ct);
     }
 
     public async Task<IEnumerable<Deudor>> GetTopAsync(int count, CancellationToken ct = default)

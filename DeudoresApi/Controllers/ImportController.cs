@@ -6,19 +6,33 @@ using Microsoft.AspNetCore.Mvc;
 namespace DeudoresApi.Controllers;
 
 [ApiController]
-[Route("[controller]")]
+[Route("/")]
 public class ImportController(
     IImportService importService,
     IConfiguration configuration,
     IImportQueue? importQueue = null) : ControllerBase
 {
+    /// <summary>
+    /// Importa un archivo BCRA. Acepta dos modos:
+    ///   1. Multipart file upload: enviar el archivo como form-data (campo "file")
+    ///   2. Ruta local: enviar form-data con campo "filePath" (string) apuntando al archivo en el servidor
+    /// </summary>
     [HttpPost("upload")]
     [RequestSizeLimit(long.MaxValue)]
-    public async Task<IActionResult> Upload(IFormFile file, CancellationToken ct)
+    public async Task<IActionResult> Upload(IFormFile? file, [FromForm] string? filePath, CancellationToken ct)
     {
-        if (file == null || file.Length == 0)
-            return BadRequest("Archivo inválido");
+        // Determinar el origen del archivo: upload o ruta local
+        if (file is not null && file.Length > 0)
+            return await ProcessUploadedFile(file, ct);
 
+        if (!string.IsNullOrWhiteSpace(filePath))
+            return await ProcessLocalFile(filePath, ct);
+
+        return BadRequest("Debe enviar un archivo (campo 'file') o una ruta local (campo 'filePath')");
+    }
+
+    private async Task<IActionResult> ProcessUploadedFile(IFormFile file, CancellationToken ct)
+    {
         var validationError = ValidateFile(file.FileName, file.Length);
         if (validationError is not null)
             return BadRequest(validationError);
@@ -30,7 +44,6 @@ public class ImportController(
                 await file.CopyToAsync(fs, ct);
 
             await importQueue.EnqueueAsync(tempPath, ct);
-
             return Accepted(new { message = "Archivo encolado para procesamiento asíncrono", archivo = file.FileName });
         }
 
@@ -39,31 +52,23 @@ public class ImportController(
         return Ok(ToResponse(result));
     }
 
-    /// <summary>
-    /// Procesa un archivo desde una ruta local del servidor (útil para archivos grandes).
-    /// No aplica validación de tamaño porque el archivo ya está en el servidor.
-    /// </summary>
-    [HttpPost("process-local")]
-    public async Task<IActionResult> ProcessLocal([FromBody] ProcessLocalRequest request, CancellationToken ct)
+    private async Task<IActionResult> ProcessLocalFile(string filePath, CancellationToken ct)
     {
-        if (string.IsNullOrWhiteSpace(request.FilePath))
-            return BadRequest("La ruta del archivo es requerida");
+        if (!System.IO.File.Exists(filePath))
+            return NotFound($"Archivo no encontrado: {filePath}");
 
-        if (!System.IO.File.Exists(request.FilePath))
-            return NotFound($"Archivo no encontrado: {request.FilePath}");
-
-        var fileInfo = new FileInfo(request.FilePath);
+        var fileInfo = new FileInfo(filePath);
         var validationError = ValidateFileExtension(fileInfo.Name);
         if (validationError is not null)
             return BadRequest(validationError);
 
         if (importQueue is not null)
         {
-            await importQueue.EnqueueAsync(request.FilePath, ct);
-            return Accepted(new { message = "Archivo encolado para procesamiento asíncrono", archivo = request.FilePath });
+            await importQueue.EnqueueAsync(filePath, ct);
+            return Accepted(new { message = "Archivo encolado para procesamiento asíncrono", archivo = filePath });
         }
 
-        using var stream = System.IO.File.OpenRead(request.FilePath);
+        using var stream = System.IO.File.OpenRead(filePath);
         var result = await importService.ProcessAsync(stream, ct);
         return Ok(ToResponse(result));
     }

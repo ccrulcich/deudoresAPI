@@ -65,15 +65,15 @@ public class BcraParser(ILogger<BcraParser> logger) : IBcraParser
 
         await foreach (var record in ParseAsync(fileStream, ct))
         {
-            if (deudoresDict.TryGetValue(record.NroIdentificacion, out var existing))
+            if (deudoresDict.TryGetValue(record.Cuit, out var existing))
             {
-                deudoresDict[record.NroIdentificacion] = (
+                deudoresDict[record.Cuit] = (
                     Math.Max(existing.situacionMax, record.Situacion),
                     existing.sumaTotal + record.Prestamos);
             }
             else
             {
-                deudoresDict[record.NroIdentificacion] = (record.Situacion, record.Prestamos);
+                deudoresDict[record.Cuit] = (record.Situacion, record.Prestamos);
             }
 
             entidadesDict.TryGetValue(record.CodigoEntidad, out var entidadTotal);
@@ -82,7 +82,7 @@ public class BcraParser(ILogger<BcraParser> logger) : IBcraParser
 
         var deudores = deudoresDict.Select(kv => new Deudor
         {
-            NroIdentificacion = kv.Key,
+            Cuit = kv.Key,
             SituacionMaxima = kv.Value.situacionMax,
             SumaTotalPrestamos = kv.Value.sumaTotal
         }).ToList();
@@ -101,15 +101,15 @@ public class BcraParser(ILogger<BcraParser> logger) : IBcraParser
         try
         {
             var codigoEntidad = line.Substring(PosCodigoEntidad, LenCodigoEntidad).Trim();
-            var nroIdentificacion = line.Substring(PosNroIdentificacion, LenNroIdentificacion).Trim();
+            var cuit = line.Substring(PosNroIdentificacion, LenNroIdentificacion).Trim();
             var situacionRaw = line.Substring(PosSituacion, LenSituacion).Trim();
             var prestamosRaw = line.Substring(PosPrestamos, LenPrestamos).Trim();
 
-            if (string.IsNullOrEmpty(codigoEntidad) || string.IsNullOrEmpty(nroIdentificacion))
+            if (string.IsNullOrEmpty(codigoEntidad) || string.IsNullOrEmpty(cuit))
             {
                 logger.LogWarning(
                     "Línea {LineNumber}: campos obligatorios vacíos (entidad='{Entidad}', id='{Id}')",
-                    lineNumber, codigoEntidad, nroIdentificacion);
+                    lineNumber, codigoEntidad, cuit);
                 return null;
             }
 
@@ -138,7 +138,7 @@ public class BcraParser(ILogger<BcraParser> logger) : IBcraParser
                 CodigoEntidad = codigoEntidad,
                 FechaInformacion = line.Substring(PosFechaInformacion, LenFechaInformacion).Trim(),
                 TipoIdentificacion = line.Substring(PosTipoIdentificacion, LenTipoIdentificacion).Trim(),
-                NroIdentificacion = nroIdentificacion,
+                Cuit = cuit,
                 Actividad = line.Substring(PosActividad, LenActividad).Trim(),
                 Situacion = situacion,
                 Prestamos = prestamos

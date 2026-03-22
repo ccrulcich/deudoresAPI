@@ -10,13 +10,13 @@ public class DeudoresController(IQueryService queryService) : ControllerBase
     /// <summary>
     /// Retorna un deudor por su número de identificación (CUIT/CUIL).
     /// </summary>
-    [HttpGet("{nroIdentificacion}")]
-    public async Task<IActionResult> GetByIdentificacion(string nroIdentificacion, CancellationToken ct)
+    [HttpGet("{cuit}")]
+    public async Task<IActionResult> GetByIdentificacion(string cuit, CancellationToken ct)
     {
-        var deudor = await queryService.GetDeudorAsync(nroIdentificacion, ct);
+        var deudor = await queryService.GetDeudorAsync(cuit, ct);
 
         if (deudor is null)
-            return NotFound($"No se encontró deudor con identificación: {nroIdentificacion}");
+            return NotFound($"No se encontró deudor con identificación: {cuit}");
 
         return Ok(deudor);
     }

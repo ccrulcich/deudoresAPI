@@ -4,7 +4,7 @@ namespace DeudoresApi.Domain.Models;
 // EF Core se configura exclusivamente via Fluent API en AppDbContext.
 public class Deudor
 {
-    public string NroIdentificacion { get; set; } = string.Empty;
+    public string Cuit { get; set; } = string.Empty;
     public int SituacionMaxima { get; set; }
     public decimal SumaTotalPrestamos { get; set; }
 }
