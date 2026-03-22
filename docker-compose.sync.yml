@@ -1,0 +1,42 @@
+services:
+
+  # ─── Base de Datos PostgreSQL ───────────────────────────────────────────────
+  postgres:
+    image: postgres:17-alpine
+    container_name: deudores_postgres
+    environment:
+      POSTGRES_DB: deudores_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d deudores_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ─── API .NET (modo síncrono — sin SQS) ────────────────────────────────────
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: deudores_api
+    ports:
+      - "8080:8080"
+    volumes:
+      - /Users/valeriadiaz/Desktop/Cristian-Wayni/Challenge/Docs:/data:ro
+    env_file: .env
+    environment:
+      # Sin SqsSettings → modo síncrono automáticamente (sobrescriben .env)
+      SqsSettings__ServiceUrl: ""
+      SqsSettings__QueueUrl: ""
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: on-failure
+
+volumes:
+  postgres_data:

@@ -45,17 +45,9 @@ services:
     container_name: deudores_api
     ports:
       - "8080:8080"                    # Tu Mac:8080 → Contenedor:8080
-    environment:
-      # Sobreescribimos el connection string para que apunte al contenedor de Postgres.
-      # "postgres" es el nombre del servicio definido arriba — Docker resuelve el DNS automáticamente.
-      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=deudores_db;Username=postgres;Password=postgres"
-      ASPNETCORE_ENVIRONMENT: Production
-      # SQS — apunta a LocalStack. Comentar estas líneas para deshabilitar el procesamiento async.
-      SqsSettings__ServiceUrl: "http://localstack:4566"
-      SqsSettings__QueueUrl: "http://localstack:4566/000000000000/import-queue"
-      SqsSettings__AccessKey: "test"
-      SqsSettings__SecretKey: "test"
-      SqsSettings__Region: "us-east-1"
+    volumes:
+      - /Users/valeriadiaz/Desktop/Cristian-Wayni/Challenge/Docs:/data:ro  # Monta la carpeta Docs como /data (solo lectura)
+    env_file: .env                     # Todas las variables de entorno en un solo archivo
     depends_on:
       postgres:
         condition: service_healthy     # La API espera el healthcheck de Postgres antes de arrancar
