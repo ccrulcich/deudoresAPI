@@ -47,8 +47,9 @@ Docker Compose levanta automáticamente:
 El archivo de datos (`deudores.txt`) **no está incluido en el repositorio** por su tamaño. Debés obtenerlo del sitio del BCRA y colocarlo en la carpeta `Docs/` antes de levantar Docker:
 
 ```
-deudoresAPI/
-└── ../Docs/
+Challenge/
+├── deudoresAPI/   ← repositorio clonado
+└── Docs/
     └── deudores.txt   ← colocar aquí
 ```
 
@@ -245,6 +246,6 @@ DeudoresApi/
 
 DeudoresApi.Tests/        # Tests unitarios (xUnit)
 Dockerfile                # Build multi-stage para la API
-docker-compose.yml        # Orquestación API + PostgreSQL
-.env.example              # Plantilla de variables de entorno
+docker-compose.yml        # Orquestación API + PostgreSQL + LocalStack
+.env                      # Variables de entorno (incluido en el repo)
 ```
