@@ -31,24 +31,12 @@ public class QueryService(
             nameLookup.GetEntidadNombre(entidad.CodigoEntidad));
     }
 
-    public async Task<IEnumerable<DeudorDto>> GetTopDeudoresAsync(int count, CancellationToken ct = default)
+    public async Task<IEnumerable<DeudorDto>> GetTopDeudoresAsync(int count, int? situacion = null, CancellationToken ct = default)
     {
-        var deudores = await deudorRepo.GetTopAsync(count, ct);
+        var deudores = await deudorRepo.GetTopAsync(count, situacion, ct);
 
         return deudores.Select(d =>
             new DeudorDto(d.Cuit, d.SituacionMaxima, d.SumaTotalPrestamos,
                 nameLookup.GetDeudorNombre(d.Cuit)));
-    }
-
-    public async Task<PagedResultDto<DeudorDto>> GetDeudoresBySituacionAsync(
-        int situacion, int page = 1, int pageSize = 50, CancellationToken ct = default)
-    {
-        var (items, totalCount) = await deudorRepo.GetBySituacionAsync(situacion, page, pageSize, ct);
-
-        var dtos = items.Select(d =>
-            new DeudorDto(d.Cuit, d.SituacionMaxima, d.SumaTotalPrestamos,
-                nameLookup.GetDeudorNombre(d.Cuit)));
-
-        return new PagedResultDto<DeudorDto>(dtos, totalCount, page, pageSize);
     }
 }

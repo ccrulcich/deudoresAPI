@@ -114,7 +114,7 @@ curl -X POST http://localhost:8080/Import/upload \
 |--------|------|-------------|
 | `GET` | `/Deudores/{cuit}` | Retorna situación máxima y suma total de préstamos de un deudor |
 | `GET` | `/Deudores/top/{n}` | Top N deudores por mayor suma total de préstamos |
-| `GET` | `/Deudores?situacion={1-6}&page=1&pageSize=50` | Filtra deudores por situación máxima (paginado) |
+| `GET` | `/Deudores/top/{n}?situacion={1-6}` | Top N deudores filtrados por situación máxima |
 | `GET` | `/Entidades/{codigo}` | Retorna suma total de préstamos de una entidad |
 | `GET` | `/health` | Health check (API + PostgreSQL) |
 
@@ -130,20 +130,9 @@ curl http://localhost:8080/Deudores/20123456781
 }
 ```
 
-**Ejemplo paginado:**
+**Ejemplo top con filtro por situación:**
 ```bash
-curl "http://localhost:8080/Deudores?situacion=1&page=2&pageSize=20"
-```
-```json
-{
-  "items": [...],
-  "totalCount": 5000,
-  "page": 2,
-  "pageSize": 20,
-  "totalPages": 250,
-  "hasNextPage": true,
-  "hasPreviousPage": true
-}
+curl "http://localhost:8080/Deudores/top/10?situacion=1"
 ```
 
 ---
