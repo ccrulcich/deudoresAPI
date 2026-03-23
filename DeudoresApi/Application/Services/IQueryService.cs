@@ -14,12 +14,7 @@ public interface IQueryService
 
     /// <summary>
     /// Top N deudores por suma total de préstamos, descendente.
+    /// Opcionalmente filtra por situación máxima.
     /// </summary>
-    Task<IEnumerable<DeudorDto>> GetTopDeudoresAsync(int count, CancellationToken ct = default);
-
-    /// <summary>
-    /// Retorna deudores con una situación máxima específica, con paginación.
-    /// </summary>
-    Task<PagedResultDto<DeudorDto>> GetDeudoresBySituacionAsync(
-        int situacion, int page = 1, int pageSize = 50, CancellationToken ct = default);
+    Task<IEnumerable<DeudorDto>> GetTopDeudoresAsync(int count, int? situacion = null, CancellationToken ct = default);
 }

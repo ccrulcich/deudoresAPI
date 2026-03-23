@@ -10,12 +10,7 @@ public interface IDeudorRepository
 
     /// <summary>
     /// Retorna los N deudores con mayor suma total de préstamos.
+    /// Opcionalmente filtra por situación máxima.
     /// </summary>
-    Task<IEnumerable<Deudor>> GetTopAsync(int count, CancellationToken ct = default);
-
-    /// <summary>
-    /// Retorna deudores con una situación máxima específica, con paginación.
-    /// </summary>
-    Task<(IEnumerable<Deudor> Items, int TotalCount)> GetBySituacionAsync(
-        int situacion, int page = 1, int pageSize = 50, CancellationToken ct = default);
+    Task<IEnumerable<Deudor>> GetTopAsync(int count, int? situacion = null, CancellationToken ct = default);
 }

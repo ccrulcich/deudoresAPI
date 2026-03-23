@@ -58,27 +58,16 @@ public class DeudorRepository(AppDbContext db, ILogger<DeudorRepository> logger)
         return await db.Deudores.FindAsync([cuit], ct);
     }
 
-    public async Task<IEnumerable<Deudor>> GetTopAsync(int count, CancellationToken ct = default)
+    public async Task<IEnumerable<Deudor>> GetTopAsync(int count, int? situacion = null, CancellationToken ct = default)
     {
-        return await db.Deudores
+        IQueryable<Deudor> query = db.Deudores;
+
+        if (situacion.HasValue)
+            query = query.Where(d => d.SituacionMaxima == situacion.Value);
+
+        return await query
             .OrderByDescending(d => d.SumaTotalPrestamos)
             .Take(count)
             .ToListAsync(ct);
-    }
-
-    public async Task<(IEnumerable<Deudor> Items, int TotalCount)> GetBySituacionAsync(
-        int situacion, int page = 1, int pageSize = 50, CancellationToken ct = default)
-    {
-        var query = db.Deudores.Where(d => d.SituacionMaxima == situacion);
-
-        var totalCount = await query.CountAsync(ct);
-
-        var items = await query
-            .OrderByDescending(d => d.SumaTotalPrestamos)
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync(ct);
-
-        return (items, totalCount);
     }
 }
